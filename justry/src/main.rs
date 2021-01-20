@@ -1,3 +1,4 @@
+use base64::{decode, encode};
 use chrono::Utc;
 use hmac::{Hmac, Mac, NewMac};
 use sha2::Sha256;
@@ -10,6 +11,7 @@ fn main() {
     let container = "justry2";
     let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
     println!("{}\n", now);
+    let obj = "test.txt.txt";
 
     let StringToSign = {
         let VERB = "GET";
@@ -25,11 +27,7 @@ fn main() {
         let IfUnmodifiedSince = "";
         let Range = "";
         let CanonicalizedHeaders = format!("x-ms-date:{}\nx-ms-version:2015-02-21", now);
-        // "x-ms-date:Fri, 26 Jun 2015 23:39:12 GMT\nx-ms-version:2015-02-21";
-        let CanonicalizedResource = format!(
-            "/{}/{}\ncomp:metadata\nrestype:container\ntimeout:20",
-            account, container
-        );
+        let CanonicalizedResource = format!("/{}/{}/{}", account, container, obj);
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
             VERB,
@@ -50,9 +48,10 @@ fn main() {
     };
 
     type HmacSha256 = Hmac<Sha256>;
-    let mut mac = HmacSha256::new_varkey(&key.into_bytes()).expect("HMAC can take key of any size");
+    let mut mac =
+        HmacSha256::new_varkey(&decode(key).unwrap()[..]).expect("HMAC can take key of any size");
     mac.update(&StringToSign.into_bytes()[..]);
     let result = mac.finalize();
     let code_bytes = result.into_bytes();
-    println!("Hello, world! {:x}", code_bytes);
+    println!("Hello, world! {}", encode(code_bytes));
 }
