@@ -10,9 +10,9 @@ impl super::Blob {
         key: &str,
         container: &str,
         file_name: &str,
-        file: &str,
+        source: bytes::Bytes,
         timefmt: &str,
-    ) -> Result<http::Request<std::io::Empty>, Error> {
+    ) -> Result<http::Request<bytes::Bytes>, Error> {
         let now = timefmt;
         let version_value = "2015-02-21";
         let obj = file_name;
@@ -21,7 +21,7 @@ impl super::Blob {
             let verb = "PUT"; //
             let content_encoding = "";
             let content_language = "";
-            let content_length = file.len(); //
+            let content_length = source.len(); //
             let content_md5 = "";
             // let content_type = "text/plain";
             let content_type = "";
@@ -77,7 +77,7 @@ impl super::Blob {
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
         hm.insert("x-ms-version", HeaderValue::from_str(&version_value)?);
         hm.insert("x-ms-blob-type", HeaderValue::from_str("BlockBlob")?);
-        let request = req_builder.method("PUT").uri(uri).body(std::io::empty())?;
+        let request = req_builder.method("PUT").uri(uri).body(source)?;
         Ok(request)
     }
 }

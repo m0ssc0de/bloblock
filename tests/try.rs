@@ -1,4 +1,5 @@
 use bloblock::blob;
+use bytes::Bytes;
 use http::response;
 use std::env;
 
@@ -31,12 +32,13 @@ fn haha() {
     // insert
     use chrono::Utc;
     let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
+    let content = bytes::Bytes::from("hello world");
     let request = blob::Blob::insert(
         &account,
         &key,
         "justry2",
         "test.txt.txt",
-        "hello world",
+        content,
         // "Thu, 21 Jan 2021 10:25:47 GMT",
         &now,
     )
