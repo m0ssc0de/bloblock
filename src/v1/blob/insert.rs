@@ -1,4 +1,3 @@
-use crate::sign::hmacsha256;
 use anyhow::{Context, Error};
 use http::HeaderValue;
 

@@ -1,18 +1,12 @@
-use crate::sign::hmacsha256;
 use anyhow::{Context, Error};
 use http::HeaderValue;
 
-use super::prepare_to_sign;
 impl<'a> super::Blob<'a> {
     pub fn download(
         &self,
-        // account: &str,
-        // key: &str,
-        // container: &str,
         file_name: &str,
         timefmt: &str,
     ) -> Result<http::Request<std::io::Empty>, Error> {
-        // let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
         let now = timefmt;
         let version_value = "2015-02-21";
 
