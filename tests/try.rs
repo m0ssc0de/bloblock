@@ -1,6 +1,6 @@
 use bloblock::blob;
-use bytes::Bytes;
-use http::response;
+// use bytes::Bytes;
+// use http::response;
 use std::env;
 
 #[test]
@@ -8,14 +8,10 @@ fn haha() {
     let account = env::var("STORAGE_ACCOUNT").expect("failed read STORAGE_ACCOUNT from env");
     let key = env::var("STORAGE_MASTER_KEY").expect("failed read STORAGE_MASTER_KEY from env");
     // the above key must be delete from online before publish
-    let request = blob::Blob::download(
-        &account,
-        &key,
-        "justry2",
-        "test.txt.txt",
-        "Thu, 21 Jan 2021 09:18:22 GMT",
-    )
-    .unwrap();
+    let instance = blob::Blob::new(account.clone(), key.clone(), String::from("justry2"));
+    let request = instance
+        .download("test.txt.txt", "Thu, 21 Jan 2021 09:18:22 GMT")
+        .unwrap();
 
     let (p, _) = request.into_parts();
 
@@ -57,7 +53,7 @@ fn haha() {
     let response = client
         .put(&p.uri.to_string())
         .headers(p.headers)
-        .body("hello world")
+        .body(b)
         .send()
         .unwrap();
     assert_eq!(response.text().unwrap(), "");
