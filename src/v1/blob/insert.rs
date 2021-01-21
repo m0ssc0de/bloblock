@@ -6,9 +6,10 @@ use super::prepare_to_sign;
 
 impl<'a> super::Blob<'a> {
     pub fn insert(
-        account: &str,
-        key: &str,
-        container: &str,
+        // account: &str,
+        // key: &str,
+        // container: &str,
+        &self,
         file_name: &str,
         source: bytes::Bytes,
         timefmt: &str,
@@ -17,20 +18,20 @@ impl<'a> super::Blob<'a> {
         let version_value = "2015-02-21";
 
         let string_to_sign = prepare_to_sign(
-            account,
-            container,
+            self.account,
+            self.container,
             file_name,
             super::Actions::Insert,
             timefmt,
             source.len(),
         );
 
-        let sign = hmacsha256(key, &string_to_sign)?;
-        let formatedkey = format!("SharedKey {}:{}", account, sign);
+        let sign = hmacsha256(self.key, &string_to_sign)?;
+        let formatedkey = format!("SharedKey {}:{}", self.account, sign);
 
         let uri = format!(
             "https://{}.blob.core.windows.net/{}/{}",
-            account, container, file_name
+            self.account, self.container, file_name
         );
         //
         let mut req_builder = http::Request::builder();

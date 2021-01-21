@@ -1,6 +1,3 @@
-use http::method;
-use reqwest::blocking::get;
-
 mod download;
 mod insert;
 pub struct Blob<'a> {
