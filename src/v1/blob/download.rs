@@ -24,15 +24,10 @@ impl<'a> super::Blob<'a> {
             0,
         );
         let sign = hmacsha256(&self.key, &string_to_sign)?;
-        let uri = format!(
-            "https://{}.blob.core.windows.net/{}/{}",
-            &self.account, &self.container, file_name
-        );
-        //
+        let uri = format!("{}{}", self.uri, file_name);
+
         let mut req_builder = http::Request::builder();
         let formatedkey = format!("SharedKey {}:{}", &self.account, sign);
-        // let mut hm = http::HeaderMap::new();
-        // req_builder.headers_mut().
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);

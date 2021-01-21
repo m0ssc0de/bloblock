@@ -4,6 +4,7 @@ pub struct Blob<'a> {
     account: &'a str,
     key: &'a str,
     container: &'a str,
+    uri: String,
 }
 
 impl<'a> Blob<'a> {
@@ -12,6 +13,8 @@ impl<'a> Blob<'a> {
             account,
             key,
             container,
+            // maybe the fields above should referrence from the uri
+            uri: format!("https://{}.blob.core.windows.net/{}/", account, container),
         };
     }
 }
