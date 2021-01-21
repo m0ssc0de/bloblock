@@ -1,10 +1,10 @@
+use anyhow::Error;
 mod download;
 mod insert;
 pub struct Blob<'a> {
     account: &'a str,
     key: &'a str,
     container: &'a str,
-    uri: String,
 }
 
 impl<'a> Blob<'a> {
@@ -13,9 +13,31 @@ impl<'a> Blob<'a> {
             account,
             key,
             container,
-            // maybe the fields above should referrence from the uri
-            uri: format!("https://{}.blob.core.windows.net/{}/", account, container),
         };
+    }
+    fn uri(&self, file_name: &str) -> String {
+        format!(
+            "https://{}.blob.core.windows.net/{}/{}",
+            self.account, self.container, file_name
+        )
+    }
+    fn sign(
+        &self,
+        action: Actions,
+        file_name: &str,
+        time_str: &str,
+        content_length: usize,
+    ) -> Result<String, Error> {
+        let string_to_sign = prepare_to_sign(
+            self.account,
+            self.container,
+            file_name,
+            action,
+            time_str,
+            content_length,
+        );
+
+        Ok(crate::sign::hmacsha256(self.key, &string_to_sign)?)
     }
 }
 
@@ -30,16 +52,16 @@ fn prepare_to_sign(
     obj: &str,
     action: Actions,
     time_str: &str,
-    conten_length: usize,
+    content_length: usize,
 ) -> String {
     let string_to_sign = {
         let content_encoding = "";
         let content_language = "";
         let content_length = {
-            if conten_length == 0 {
+            if content_length == 0 {
                 String::from("")
             } else {
-                conten_length.to_string()
+                content_length.to_string()
             }
         };
         let content_md5 = "";

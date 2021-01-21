@@ -2,8 +2,6 @@ use crate::sign::hmacsha256;
 use anyhow::{Context, Error};
 use http::HeaderValue;
 
-use super::prepare_to_sign;
-
 impl<'a> super::Blob<'a> {
     pub fn insert(
         // account: &str,
@@ -17,30 +15,22 @@ impl<'a> super::Blob<'a> {
         let now = timefmt;
         let version_value = "2015-02-21";
 
-        let string_to_sign = prepare_to_sign(
+        let formatedkey = format!(
+            "SharedKey {}:{}",
             self.account,
-            self.container,
-            file_name,
-            super::Actions::Insert,
-            timefmt,
-            source.len(),
+            self.sign(super::Actions::Insert, file_name, timefmt, source.len())?
         );
 
-        let sign = hmacsha256(self.key, &string_to_sign)?;
-        let formatedkey = format!("SharedKey {}:{}", self.account, sign);
-
-        let uri = format!(
-            "https://{}.blob.core.windows.net/{}/{}",
-            self.account, self.container, file_name
-        );
-        //
         let mut req_builder = http::Request::builder();
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
         hm.insert("x-ms-version", HeaderValue::from_str(&version_value)?);
         hm.insert("x-ms-blob-type", HeaderValue::from_str("BlockBlob")?);
-        let request = req_builder.method("PUT").uri(uri).body(source)?;
+        let request = req_builder
+            .method("PUT")
+            .uri(self.uri(file_name))
+            .body(source)?;
         Ok(request)
     }
 }

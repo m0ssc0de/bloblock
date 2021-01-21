@@ -15,24 +15,21 @@ impl<'a> super::Blob<'a> {
         // let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
         let now = timefmt;
         let version_value = "2015-02-21";
-        let string_to_sign = prepare_to_sign(
-            &self.account,
-            &self.container,
-            file_name,
-            super::Actions::Download,
-            timefmt,
-            0,
-        );
-        let sign = hmacsha256(&self.key, &string_to_sign)?;
-        let uri = format!("{}{}", self.uri, file_name);
 
         let mut req_builder = http::Request::builder();
-        let formatedkey = format!("SharedKey {}:{}", &self.account, sign);
+        let formatedkey = format!(
+            "SharedKey {}:{}",
+            &self.account,
+            self.sign(super::Actions::Download, file_name, timefmt, 0)?
+        );
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
         hm.insert("x-ms-version", HeaderValue::from_str(&version_value)?);
-        let request = req_builder.method("GET").uri(uri).body(std::io::empty())?;
+        let request = req_builder
+            .method("GET")
+            .uri(self.uri(file_name))
+            .body(std::io::empty())?;
         Ok(request)
     }
 }
