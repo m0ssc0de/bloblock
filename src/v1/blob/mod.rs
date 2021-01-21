@@ -23,6 +23,7 @@ impl<'a> Blob<'a> {
             self.account, self.container, file_name
         )
     }
+    fn headers(&self) {}
     fn sign(
         &self,
         action: Actions,
