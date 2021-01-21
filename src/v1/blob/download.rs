@@ -1,7 +1,7 @@
 use anyhow::{Context, Error};
 use base64::{decode, encode};
-use chrono::Utc;
 use hmac::{Hmac, Mac, NewMac};
+use http::HeaderValue;
 use sha2::Sha256;
 impl super::Blob {
     pub fn download(
@@ -9,12 +9,11 @@ impl super::Blob {
         key: &str,
         container: &str,
         file_name: &str,
+        timefmt: &str,
     ) -> Result<http::Request<std::io::Empty>, Error> {
-        // head sign
-        // let container = "justry2";
-        let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
-        println!("{}\n", now);
-        // let obj = "test.txt.txt";
+        // let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
+        let now = timefmt;
+        let version_value = "2015-02-21";
         let obj = file_name;
         let string_to_sign = {
             let verb = "GET";
@@ -29,7 +28,8 @@ impl super::Blob {
             let if_none_match = "";
             let if_unmodified_since = "";
             let range = "";
-            let canonicalized_headers = format!("x-ms-date:{}\nx-ms-version:2015-02-21", now);
+            let canonicalized_headers =
+                format!("x-ms-date:{}\nx-ms-version:{}", now, version_value);
             let canonicalized_resource = format!("/{}/{}/{}", account, container, obj);
             format!(
                 "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
@@ -50,17 +50,24 @@ impl super::Blob {
             )
         };
         type HmacSha256 = Hmac<Sha256>;
-        let mut mac = HmacSha256::new_varkey(&decode(key).unwrap()[..])
-            .expect("HMAC can take key of any size");
+        let mut mac =
+            HmacSha256::new_varkey(&decode(key)?[..]).expect("HMAC can take key of any size"); //(?)
         mac.update(&string_to_sign.into_bytes()[..]);
         let result = mac.finalize();
         let code_bytes = result.into_bytes();
         println!("Hello, world! {}", encode(code_bytes));
+        let uri = format!(
+            "https://{}.blob.core.windows.net/{}/{}",
+            account, container, file_name
+        );
         //
-        let req_builder = http::Request::builder();
-        Ok(req_builder
-            .method("GET")
-            .uri("https://www.google.com")
-            .body(std::io::empty())?)
+        let mut req_builder = http::Request::builder();
+        let formatedkey = format!("SharedKey {}:{}", account, encode(code_bytes));
+        let hm = req_builder.headers_mut().context("context")?;
+        hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
+        hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
+        hm.insert("x-ms-version", HeaderValue::from_str(&version_value)?);
+        let request = req_builder.method("GET").uri(uri).body(std::io::empty())?;
+        Ok(request)
     }
 }
