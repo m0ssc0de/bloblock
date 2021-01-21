@@ -63,6 +63,8 @@ impl super::Blob {
         //
         let mut req_builder = http::Request::builder();
         let formatedkey = format!("SharedKey {}:{}", account, encode(code_bytes));
+        // let mut hm = http::HeaderMap::new();
+        // req_builder.headers_mut().
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);

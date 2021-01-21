@@ -1,4 +1,5 @@
 use bloblock::blob;
+use http::response;
 use std::env;
 
 #[test]
@@ -26,4 +27,37 @@ fn haha() {
         format!("{:?}", p.headers), 
         "{\"authorization\": \"SharedKey t4acc:NgSvaCnTsGKyFmpKEPhoOu2q0Gq/tZlzvVbVkRLN1Yo=\", \"x-ms-date\": \"Thu, 21 Jan 2021 09:18:22 GMT\", \"x-ms-version\": \"2015-02-21\"}"
     );
+
+    // insert
+    use chrono::Utc;
+    let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
+    let request = blob::Blob::insert(
+        &account,
+        &key,
+        "justry2",
+        "test.txt.txt",
+        "hello world",
+        // "Thu, 21 Jan 2021 10:25:47 GMT",
+        &now,
+    )
+    .unwrap();
+    let (p, b) = request.into_parts();
+    assert_eq!(p.method, http::Method::PUT);
+    assert_eq!(
+        p.uri,
+        "https://t4acc.blob.core.windows.net/justry2/test.txt.txt"
+    );
+    // assert_eq!(
+    //     format!("{:?}", p.headers),
+    //     "{\"authorization\": \"SharedKey t4acc:P5s6MPQMGssba4bnHAq2Ymiuujqj9LlOCQwJziINmyE=\", \"x-ms-date\": \"Thu, 21 Jan 2021 10:25:47 GMT\", \"x-ms-version\": \"2015-02-21\"}"
+    // );
+    let client = reqwest::blocking::Client::new();
+    let response = client
+        .put(&p.uri.to_string())
+        .headers(p.headers)
+        .body("hello world")
+        .send()
+        .unwrap();
+    assert_eq!(response.text().unwrap(), "");
+    // assert_eq!(response.status(), reqwest::StatusCode::OK);
 }
