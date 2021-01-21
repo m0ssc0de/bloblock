@@ -1,4 +1,5 @@
 use anyhow::Error;
+use http::header::ToStrError;
 mod download;
 mod insert;
 pub struct Blob<'a> {
@@ -17,16 +18,16 @@ impl<'a> Blob<'a> {
             version_value: String::from("2015-02-21"),
         };
     }
-    fn uri(&self, file_name: &str) -> String {
+    fn container_uri(&self) -> String {
         format!(
-            "https://{}.blob.core.windows.net/{}/{}",
-            self.account, self.container, file_name
+            "https://{}.blob.core.windows.net/{}",
+            self.account, self.container
         )
     }
     fn headers(&self) {}
     fn sign(
         &self,
-        action: Actions,
+        action: &Actions,
         file_name: &str,
         time_str: &str,
         content_length: usize,
@@ -48,13 +49,26 @@ impl<'a> Blob<'a> {
 enum Actions {
     Download,
     Insert,
+    Properties,
+    List,
+}
+
+impl From<&Actions> for http::Method {
+    fn from(action: &Actions) -> Self {
+        match action {
+            Actions::Download => http::Method::GET,
+            Actions::Insert => http::Method::PUT,
+            Actions::Properties => http::Method::HEAD,
+            Actions::List => http::Method::GET,
+        }
+    }
 }
 
 fn prepare_to_sign(
     account: &str,
     container: &str,
     obj: &str,
-    action: Actions,
+    action: &Actions,
     time_str: &str,
     content_length: usize,
     version_value: &str,
@@ -81,10 +95,7 @@ fn prepare_to_sign(
             "x-ms-blob-type:{}\nx-ms-date:{}\nx-ms-version:{}",
             "BlockBlob", time_str, version_value
         );
-        let verb = match action {
-            Actions::Download => http::Method::GET.to_string(),
-            Actions::Insert => http::Method::PUT.to_string(),
-        };
+        let verb = http::Method::from(action).to_string();
         let canonicalized_resource = format!("/{}/{}/{}", account, container, obj);
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
