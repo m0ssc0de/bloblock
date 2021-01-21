@@ -3,7 +3,7 @@ use anyhow::{Context, Error};
 use http::HeaderValue;
 
 use super::prepare_to_sign;
-impl super::Blob {
+impl<'a> super::Blob<'a> {
     pub fn download(
         &self,
         // account: &str,

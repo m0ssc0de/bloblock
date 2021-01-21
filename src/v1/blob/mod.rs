@@ -3,14 +3,14 @@ use reqwest::blocking::get;
 
 mod download;
 mod insert;
-pub struct Blob {
-    account: String,
-    key: String,
-    container: String,
+pub struct Blob<'a> {
+    account: &'a str,
+    key: &'a str,
+    container: &'a str,
 }
 
-impl Blob {
-    pub fn new(account: String, key: String, container: String) -> Self {
+impl<'a> Blob<'a> {
+    pub fn new(account: &'a str, key: &'a str, container: &'a str) -> Self {
         return Self {
             account,
             key,

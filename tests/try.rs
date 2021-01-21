@@ -8,7 +8,7 @@ fn haha() {
     let account = env::var("STORAGE_ACCOUNT").expect("failed read STORAGE_ACCOUNT from env");
     let key = env::var("STORAGE_MASTER_KEY").expect("failed read STORAGE_MASTER_KEY from env");
     // the above key must be delete from online before publish
-    let instance = blob::Blob::new(account.clone(), key.clone(), String::from("justry2"));
+    let instance = blob::Blob::new(&account, &key, "justry2");
     let request = instance
         .download("test.txt.txt", "Thu, 21 Jan 2021 09:18:22 GMT")
         .unwrap();
