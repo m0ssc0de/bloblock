@@ -1,10 +1,12 @@
 use anyhow::Error;
+use http::version;
 mod download;
 mod insert;
 pub struct Blob<'a> {
     account: &'a str,
     key: &'a str,
     container: &'a str,
+    version_value: String,
 }
 
 impl<'a> Blob<'a> {
@@ -13,6 +15,7 @@ impl<'a> Blob<'a> {
             account,
             key,
             container,
+            version_value: String::from("2015-02-21"),
         };
     }
     fn uri(&self, file_name: &str) -> String {
@@ -35,6 +38,7 @@ impl<'a> Blob<'a> {
             action,
             time_str,
             content_length,
+            &self.version_value,
         );
 
         Ok(crate::sign::hmacsha256(self.key, &string_to_sign)?)
@@ -53,6 +57,7 @@ fn prepare_to_sign(
     action: Actions,
     time_str: &str,
     content_length: usize,
+    version_value: &str,
 ) -> String {
     let string_to_sign = {
         let content_encoding = "";
@@ -72,22 +77,13 @@ fn prepare_to_sign(
         let if_none_match = "";
         let if_unmodified_since = "";
         let range = "";
-        let version_value = "2015-02-21";
-        let (verb, canonicalized_headers) = match action {
-            Actions::Download => {
-                let verb = http::Method::GET.to_string();
-                let canonicalized_headers =
-                    format!("x-ms-date:{}\nx-ms-version:{}", time_str, version_value);
-                (verb, canonicalized_headers)
-            }
-            Actions::Insert => {
-                let verb = http::Method::PUT.to_string();
-                let canonicalized_headers = format!(
-                    "x-ms-blob-type:{}\nx-ms-date:{}\nx-ms-version:{}",
-                    "BlockBlob", time_str, version_value
-                );
-                (verb, canonicalized_headers)
-            }
+        let canonicalized_headers = format!(
+            "x-ms-blob-type:{}\nx-ms-date:{}\nx-ms-version:{}",
+            "BlockBlob", time_str, version_value
+        );
+        let verb = match action {
+            Actions::Download => http::Method::GET.to_string(),
+            Actions::Insert => http::Method::PUT.to_string(),
         };
         let canonicalized_resource = format!("/{}/{}/{}", account, container, obj);
         format!(

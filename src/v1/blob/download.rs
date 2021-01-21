@@ -8,7 +8,6 @@ impl<'a> super::Blob<'a> {
         timefmt: &str,
     ) -> Result<http::Request<std::io::Empty>, Error> {
         let now = timefmt;
-        let version_value = "2015-02-21";
 
         let mut req_builder = http::Request::builder();
         let formatedkey = format!(
@@ -19,7 +18,8 @@ impl<'a> super::Blob<'a> {
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
-        hm.insert("x-ms-version", HeaderValue::from_str(&version_value)?);
+        hm.insert("x-ms-version", HeaderValue::from_str(&self.version_value)?);
+        hm.insert("x-ms-blob-type", HeaderValue::from_str("BlockBlob")?);
         let request = req_builder
             .method("GET")
             .uri(self.uri(file_name))
