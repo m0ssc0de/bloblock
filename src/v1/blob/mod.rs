@@ -1,7 +1,10 @@
 use anyhow::Error;
-use http::header::ToStrError;
 mod download;
 mod insert;
+mod properties;
+pub struct PropertiesResponse {
+    pub last_modified: String,
+}
 pub struct Blob<'a> {
     account: &'a str,
     key: &'a str,

@@ -1,5 +1,20 @@
 use anyhow::{Context, Error};
 use http::HeaderValue;
+use std::convert::TryFrom;
+
+impl<B> TryFrom<http::Response<B>> for super::PropertiesResponse {
+    type Error = Error;
+    fn try_from(response: http::Response<B>) -> Result<Self, Error> {
+        Ok(Self {
+            last_modified: response
+                .headers()
+                .get("Last-Modified")
+                .context("failed to read Last-Modified in headers")?
+                .to_str()?
+                .to_owned(),
+        })
+    }
+}
 
 impl<'a> super::Blob<'a> {
     pub fn properties(
@@ -14,7 +29,7 @@ impl<'a> super::Blob<'a> {
         let formatedkey = format!(
             "SharedKey {}:{}",
             &self.account,
-            self.sign(super::Actions::Properties, file_name, timefmt, 0)?
+            self.sign(&super::Actions::Properties, file_name, timefmt, 0)?
         );
         let mut uri = self.container_uri();
         uri.push('/');
@@ -25,7 +40,7 @@ impl<'a> super::Blob<'a> {
         hm.insert("x-ms-version", HeaderValue::from_str(&self.version_value)?);
         hm.insert("x-ms-blob-type", HeaderValue::from_str("BlockBlob")?);
         let request = req_builder
-            .method((&action).into())
+            .method(http::Method::from(&action))
             .uri(uri)
             .body(std::io::empty())?;
         Ok(request)
