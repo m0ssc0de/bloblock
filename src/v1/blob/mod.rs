@@ -4,6 +4,9 @@ mod insert;
 mod list;
 mod properties;
 
+pub use list::parse_list_body;
+pub use list::EnumerationResults;
+
 pub struct PropertiesResponse {
     pub last_modified: String,
 }
@@ -29,7 +32,7 @@ impl<'a> Blob<'a> {
             self.account, self.container
         )
     }
-    fn headers(&self) {}
+    // fn headers(&self) {}
     fn sign(
         &self,
         action: &Actions,
