@@ -19,12 +19,12 @@ pub struct Blob<'a> {
 
 impl<'a> Blob<'a> {
     pub fn new(account: &'a str, key: &'a str, container: &'a str) -> Self {
-        return Self {
+        Self {
             account,
             key,
             container,
             version_value: String::from("2015-02-21"),
-        };
+        }
     }
     fn container_uri(&self) -> String {
         format!(
@@ -81,7 +81,7 @@ fn prepare_to_sign(
     content_length: usize,
     version_value: &str,
 ) -> String {
-    let string_to_sign = {
+    {
         let content_encoding = "";
         let content_language = "";
         let content_length = {
@@ -125,6 +125,5 @@ fn prepare_to_sign(
             canonicalized_headers,
             canonicalized_resource,
         )
-    };
-    string_to_sign
+    }
 }
