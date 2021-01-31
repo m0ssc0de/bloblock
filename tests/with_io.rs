@@ -5,10 +5,12 @@ use std::convert::TryFrom;
 use std::env;
 
 #[test]
+#[ignore]
 fn test_with_io() {
     let account = env::var("STORAGE_ACCOUNT").expect("failed read STORAGE_ACCOUNT from env");
     let key = env::var("STORAGE_MASTER_KEY").expect("failed read STORAGE_MASTER_KEY from env");
     let container = env::var("STORAGE_CONTAINER").expect("failed read STORAGE_CONTAINER from env");
+
     let file_name = "test_bloblock.txt";
     let content = bytes::Bytes::from("hello world");
     let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
