@@ -1,7 +1,9 @@
 use anyhow::Error;
 mod download;
 mod insert;
+mod list;
 mod properties;
+
 pub struct PropertiesResponse {
     pub last_modified: String,
 }
@@ -99,7 +101,10 @@ fn prepare_to_sign(
             "BlockBlob", time_str, version_value
         );
         let verb = http::Method::from(action).to_string();
-        let canonicalized_resource = format!("/{}/{}/{}", account, container, obj);
+        let canonicalized_resource = match action {
+            Actions::List => format!("/{}/{}\ncomp:list\nrestype:container", account, container),
+            _ => format!("/{}/{}/{}", account, container, obj),
+        };
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
             verb,
