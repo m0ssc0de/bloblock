@@ -68,7 +68,7 @@ fn test_with_io() {
 
     assert_eq!(resp.is_ok(), true);
     let the_res = resp.unwrap();
-    assert_eq!(true, the_res.blobs.blob.len() > 0);
+    assert_eq!(true, !the_res.blobs.blob.is_empty());
 }
 
 fn convert_response(
