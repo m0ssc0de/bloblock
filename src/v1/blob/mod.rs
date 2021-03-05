@@ -1,4 +1,5 @@
 use anyhow::Error;
+use std::fmt;
 mod download;
 mod insert;
 mod list;
@@ -51,6 +52,12 @@ impl<'a> Blob<'a> {
         );
 
         Ok(crate::sign::hmacsha256(self.key, &string_to_sign)?)
+    }
+}
+
+impl<'a> fmt::Debug for Blob<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Blob: {:#?}", self)
     }
 }
 
