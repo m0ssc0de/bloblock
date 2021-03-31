@@ -12,6 +12,7 @@ fn main() {
     let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
     println!("{}\n", now);
     let obj = "test.txt.txt";
+    let path_to_sign = format!("/{}/{}", container, obj);
 
     let StringToSign = {
         let VERB = "GET";
@@ -27,7 +28,8 @@ fn main() {
         let IfUnmodifiedSince = "";
         let Range = "";
         let CanonicalizedHeaders = format!("x-ms-date:{}\nx-ms-version:2015-02-21", now);
-        let CanonicalizedResource = format!("/{}/{}/{}", account, container, obj);
+        // let CanonicalizedResource = format!("/{}/{}/{}", account, container, obj);
+        let CanonicalizedResource = format!("/{}{}", account, path_to_sign);
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
             VERB,

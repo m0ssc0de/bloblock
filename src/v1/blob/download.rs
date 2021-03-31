@@ -1,5 +1,6 @@
 use anyhow::{Context, Error};
 use http::HeaderValue;
+use http::Uri;
 
 impl<'a> super::Blob<'a> {
     pub fn download(
@@ -11,14 +12,19 @@ impl<'a> super::Blob<'a> {
         let now = timefmt;
 
         let mut req_builder = http::Request::builder();
-        let formatedkey = format!(
-            "SharedKey {}:{}",
-            &self.account,
-            self.sign(&action, file_name, timefmt, 0)?
-        );
         let mut uri = self.container_uri();
         uri.push('/');
         uri.push_str(file_name);
+        let formatedkey = format!(
+            "SharedKey {}:{}",
+            &self.account,
+            self.sign(
+                &action,
+                Uri::from_maybe_shared(uri.clone())?.path(),
+                timefmt,
+                0
+            )?
+        );
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);

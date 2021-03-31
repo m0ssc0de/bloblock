@@ -37,14 +37,13 @@ impl<'a> Blob<'a> {
     fn sign(
         &self,
         action: &Actions,
-        file_name: &str,
+        path: &str,
         time_str: &str,
         content_length: usize,
     ) -> Result<String, Error> {
         let string_to_sign = prepare_to_sign(
             self.account,
-            self.container,
-            file_name,
+            path,
             action,
             time_str,
             content_length,
@@ -81,8 +80,7 @@ impl From<&Actions> for http::Method {
 
 fn prepare_to_sign(
     account: &str,
-    container: &str,
-    obj: &str,
+    path: &str,
     action: &Actions,
     time_str: &str,
     content_length: usize,
@@ -112,8 +110,8 @@ fn prepare_to_sign(
         );
         let verb = http::Method::from(action).to_string();
         let canonicalized_resource = match action {
-            Actions::List => format!("/{}/{}\ncomp:list\nrestype:container", account, container),
-            _ => format!("/{}/{}/{}", account, container, obj),
+            Actions::List => format!("/{}{}\ncomp:list\nrestype:container", account, path),
+            _ => format!("/{}{}", account, path),
         };
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
