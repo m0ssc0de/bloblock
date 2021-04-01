@@ -50,7 +50,7 @@ impl<'a> Blob<'a> {
             &self.version_value,
         );
 
-        Ok(crate::sign::hmacsha256(self.key, &string_to_sign)?)
+        crate::sign::hmacsha256(self.key, &string_to_sign)
     }
 }
 
