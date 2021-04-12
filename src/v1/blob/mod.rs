@@ -16,22 +16,28 @@ pub struct Blob<'a> {
     key: &'a str,
     container: &'a str,
     version_value: String,
+    azurite: bool,
 }
 
 impl<'a> Blob<'a> {
-    pub fn new(account: &'a str, key: &'a str, container: &'a str) -> Self {
+    pub fn new(account: &'a str, key: &'a str, container: &'a str, azurite: bool) -> Self {
         Self {
             account,
             key,
             container,
             version_value: String::from("2015-02-21"),
+            azurite,
         }
     }
     fn container_uri(&self) -> String {
-        format!(
-            "https://{}.blob.core.windows.net/{}",
-            self.account, self.container
-        )
+        if self.azurite {
+            format!("http://127.0.0.1:10000/{}/{}", self.account, self.container)
+        } else {
+            format!(
+                "https://{}.blob.core.windows.net/{}",
+                self.account, self.container
+            )
+        }
     }
     // fn headers(&self) {}
     fn sign(
@@ -50,7 +56,10 @@ impl<'a> Blob<'a> {
             &self.version_value,
         );
 
+        // (
         crate::sign::hmacsha256(self.key, &string_to_sign)
+        //     string_to_sign,
+        // )
     }
 }
 
@@ -104,10 +113,17 @@ fn prepare_to_sign(
         let if_none_match = "";
         let if_unmodified_since = "";
         let range = "";
-        let canonicalized_headers = format!(
-            "x-ms-blob-type:{}\nx-ms-date:{}\nx-ms-version:{}",
-            "BlockBlob", time_str, version_value
-        );
+        let canonicalized_headers = match action {
+            &Actions::Properties => {
+                format!("x-ms-date:{}\nx-ms-version:{}", time_str, version_value)
+            }
+            _ => format!(
+                "x-ms-blob-type:{}\nx-ms-date:{}\nx-ms-version:{}",
+                "BlockBlob", time_str, version_value
+            ),
+        };
+        // let canonicalized_headers =
+        //     format!("x-ms-date:{}\nx-ms-version:{}", time_str, version_value);
         let verb = http::Method::from(action).to_string();
         let canonicalized_resource = match action {
             Actions::List => format!("/{}{}\ncomp:list\nrestype:container", account, path),
@@ -131,4 +147,40 @@ fn prepare_to_sign(
             canonicalized_resource,
         )
     }
+}
+
+#[test]
+fn test_prepare_to_sign() -> Result<(), Error> {
+    let left = "PUT\n\n\n11\n\n\n\n\n\n\n\n\nx-ms-blob-type:BlockBlob\nx-ms-date:Tue, 06 Apr 2021 14:08:27 GMT\nx-ms-version:2015-02-21\n/t4acc/ccon/test_bloblock.txt";
+    let right = prepare_to_sign(
+        "t4acc",
+        "/ccon/test_bloblock.txt",
+        &Actions::Insert,
+        "Tue, 06 Apr 2021 14:08:27 GMT",
+        11,
+        "2015-02-21",
+    );
+    assert_eq!(left, right);
+
+    Ok(())
+}
+
+#[test]
+fn test_sign() -> Result<(), Error> {
+    let b = Blob::new(
+        "devstoreaccount1",
+        "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
+        "ccon",
+        false,
+    );
+    let right = b
+        .sign(
+            &Actions::Insert,
+            "/ccon/test_bloblock.txt",
+            "Tue, 06 Apr 2021 14:08:27 GMT",
+            11,
+        )
+        .unwrap();
+    assert_eq!(right, "AqBQs2cXXFB4+G0x3oevuOtxH65IRzA1oIuVvdptRzc=");
+    Ok(())
 }

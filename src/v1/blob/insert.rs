@@ -1,5 +1,8 @@
+use std::str::FromStr;
+
 use anyhow::{Context, Error};
 use http::HeaderValue;
+use http::Uri;
 
 impl<'a> super::Blob<'a> {
     pub fn insert(
@@ -11,15 +14,11 @@ impl<'a> super::Blob<'a> {
         let action = super::Actions::Insert;
         let now = timefmt;
 
-        let formatedkey = format!(
-            "SharedKey {}:{}",
-            self.account,
-            self.sign(&action, file_name, timefmt, source.len())?
-        );
-
         let mut uri = self.container_uri();
         uri.push('/');
         uri.push_str(file_name);
+        let sign = self.sign(&action, Uri::from_str(&uri)?.path(), timefmt, source.len());
+        let formatedkey = format!("SharedKey {}:{}", self.account, sign?);
         let mut req_builder = http::Request::builder();
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
@@ -43,7 +42,7 @@ fn test_insert() -> Result<(), Error> {
     let request_time = "Thu, 21 Jan 2021 13:36:40 GMT";
     let content = bytes::Bytes::from("hello world");
 
-    let instance = crate::blob::Blob::new(account, key, container);
+    let instance = crate::blob::Blob::new(account, key, container, false);
     let left = instance
         .insert("test.txt.txt", content, request_time)
         .unwrap();

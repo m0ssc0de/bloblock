@@ -1,6 +1,8 @@
 use anyhow::{Context, Error};
 use http::HeaderValue;
+use http::Uri;
 use std::convert::TryFrom;
+use std::str::FromStr;
 
 impl<B> TryFrom<http::Response<B>> for super::PropertiesResponse {
     type Error = Error;
@@ -26,19 +28,25 @@ impl<'a> super::Blob<'a> {
         let now = timefmt;
 
         let mut req_builder = http::Request::builder();
-        let formatedkey = format!(
-            "SharedKey {}:{}",
-            &self.account,
-            self.sign(&super::Actions::Properties, file_name, timefmt, 0)?
-        );
         let mut uri = self.container_uri();
         uri.push('/');
         uri.push_str(file_name);
+        let sign = self.sign(
+            &super::Actions::Properties,
+            Uri::from_str(&uri)?.path(),
+            timefmt,
+            0,
+        );
+        let formatedkey = format!(
+            "SharedKey {}:{}",
+            &self.account,
+            sign?,
+            // self.sign(&super::Actions::Properties, file_name, timefmt, 0)?
+        );
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
         hm.insert("x-ms-version", HeaderValue::from_str(&self.version_value)?);
-        hm.insert("x-ms-blob-type", HeaderValue::from_str("BlockBlob")?);
         let request = req_builder
             .method(http::Method::from(&action))
             .uri(uri)
@@ -56,7 +64,7 @@ fn test_properties() -> Result<(), Error> {
     let file_name = "test.txt.txt";
     let download_time = "Thu, 21 Jan 2021 13:36:40 GMT";
 
-    let instance = crate::blob::Blob::new(account, key, container);
+    let instance = crate::blob::Blob::new(account, key, container, false);
     let left = instance.properties(file_name, download_time).unwrap();
 
     // right value
@@ -66,14 +74,13 @@ fn test_properties() -> Result<(), Error> {
     let hm = req_builder.headers_mut().unwrap();
     hm.insert(
         "Authorization",
-        HeaderValue::from_str("SharedKey t4acc:ZqK+H4hbMyUF8wcH8awb12uEFvllk5hrOoVP9aS/w7o=")?,
+        HeaderValue::from_str("SharedKey t4acc:UlhoyBhxiZ+dWWCeAEYU+QwXXCeNxDdEsyCB9MM1hZA=")?,
     );
     hm.insert(
         "x-ms-date",
         HeaderValue::from_str("Thu, 21 Jan 2021 13:36:40 GMT")?,
     );
     hm.insert("x-ms-version", HeaderValue::from_str("2015-02-21")?);
-    hm.insert("x-ms-blob-type", HeaderValue::from_str("BlockBlob")?);
 
     let right = req_builder
         .method(http::Method::HEAD)

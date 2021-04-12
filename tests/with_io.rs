@@ -2,20 +2,20 @@ use anyhow::{anyhow, Error};
 use bloblock::blob;
 use chrono::{DateTime, Utc};
 use std::convert::TryFrom;
-use std::env;
 
 #[test]
 #[ignore]
 fn test_with_io() {
-    let account = env::var("STORAGE_ACCOUNT").expect("failed read STORAGE_ACCOUNT from env");
-    let key = env::var("STORAGE_MASTER_KEY").expect("failed read STORAGE_MASTER_KEY from env");
-    let container = env::var("STORAGE_CONTAINER").expect("failed read STORAGE_CONTAINER from env");
+    let account = "devstoreaccount1";
+    let key =
+        "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
+    let container = "ccon";
 
     let file_name = "test_bloblock.txt";
     let content = bytes::Bytes::from("hello world");
-    let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
+    let now = Utc::now().format("%a, %d %b %Y %T GMT").to_string();
 
-    let instance = blob::Blob::new(&account, &key, &container);
+    let instance = blob::Blob::new(&account, &key, &container, true);
 
     //insert
     let request = instance.insert(file_name, content, &now).unwrap();
@@ -42,6 +42,7 @@ fn test_with_io() {
 
     //properties
     let request = instance.properties(file_name, &now).unwrap();
+
     let (p, _) = request.into_parts();
     let client = reqwest::blocking::Client::new();
     let response = client
@@ -49,6 +50,7 @@ fn test_with_io() {
         .headers(p.headers)
         .send()
         .unwrap();
+    assert_eq!(response.status(), reqwest::StatusCode::OK);
     let hresp = convert_response(response).unwrap();
     let res = crate::blob::PropertiesResponse::try_from(hresp).unwrap();
     let last_modified = DateTime::parse_from_rfc2822(&res.last_modified);

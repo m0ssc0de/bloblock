@@ -9,8 +9,7 @@ fn main() {
     let key = env::var("STORAGE_MASTER_KEY").expect("failed read STORAGE_MASTER_KEY from env");
 
     let container = "justry2";
-    let now = Utc::now().format("%a, %e %b %Y %T GMT").to_string();
-    println!("{}\n", now);
+    let now = Utc::now().format("%a, %d %b %Y %T GMT").to_string();
     let obj = "test.txt.txt";
     let path_to_sign = format!("/{}/{}", container, obj);
 
@@ -55,5 +54,7 @@ fn main() {
     mac.update(&StringToSign.into_bytes()[..]);
     let result = mac.finalize();
     let code_bytes = result.into_bytes();
+    println!("timenow: {}\n", now);
+    println!("string to sign: ->{}<-", StringToSign);
     println!("Hello, world! {}", encode(code_bytes));
 }

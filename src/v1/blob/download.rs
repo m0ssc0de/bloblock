@@ -1,6 +1,7 @@
 use anyhow::{Context, Error};
 use http::HeaderValue;
 use http::Uri;
+use std::str::FromStr;
 
 impl<'a> super::Blob<'a> {
     pub fn download(
@@ -15,16 +16,8 @@ impl<'a> super::Blob<'a> {
         let mut uri = self.container_uri();
         uri.push('/');
         uri.push_str(file_name);
-        let formatedkey = format!(
-            "SharedKey {}:{}",
-            &self.account,
-            self.sign(
-                &action,
-                Uri::from_maybe_shared(uri.clone())?.path(),
-                timefmt,
-                0
-            )?
-        );
+        let sign = self.sign(&action, Uri::from_str(&uri)?.path(), timefmt, 0);
+        let formatedkey = format!("SharedKey {}:{}", &self.account, sign?,);
         let hm = req_builder.headers_mut().context("context")?;
         hm.insert("Authorization", HeaderValue::from_str(&formatedkey)?);
         hm.insert("x-ms-date", HeaderValue::from_str(&now)?);
@@ -46,7 +39,7 @@ fn test_download() -> Result<(), Error> {
     let file_name = "test.txt.txt";
     let download_time = "Thu, 21 Jan 2021 13:36:40 GMT";
 
-    let instance = crate::blob::Blob::new(account, key, container);
+    let instance = crate::blob::Blob::new(account, key, container, false);
     let left = instance.download(file_name, download_time).unwrap();
 
     // right value
