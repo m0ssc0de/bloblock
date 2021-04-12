@@ -150,7 +150,7 @@ fn prepare_to_sign(
 }
 
 #[test]
-fn test_prepare_to_sign() -> Result<(), Error> {
+fn test_prepare_to_sign() {
     let left = "PUT\n\n\n11\n\n\n\n\n\n\n\n\nx-ms-blob-type:BlockBlob\nx-ms-date:Tue, 06 Apr 2021 14:08:27 GMT\nx-ms-version:2015-02-21\n/t4acc/ccon/test_bloblock.txt";
     let right = prepare_to_sign(
         "t4acc",
@@ -161,12 +161,10 @@ fn test_prepare_to_sign() -> Result<(), Error> {
         "2015-02-21",
     );
     assert_eq!(left, right);
-
-    Ok(())
 }
 
 #[test]
-fn test_sign() -> Result<(), Error> {
+fn test_sign() {
     let b = Blob::new(
         "devstoreaccount1",
         "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
@@ -182,5 +180,4 @@ fn test_sign() -> Result<(), Error> {
         )
         .unwrap();
     assert_eq!(right, "AqBQs2cXXFB4+G0x3oevuOtxH65IRzA1oIuVvdptRzc=");
-    Ok(())
 }
