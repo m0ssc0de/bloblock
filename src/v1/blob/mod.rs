@@ -114,7 +114,7 @@ fn prepare_to_sign(
         let if_unmodified_since = "";
         let range = "";
         let canonicalized_headers = match action {
-            &Actions::Properties => {
+            Actions::Properties => {
                 format!("x-ms-date:{}\nx-ms-version:{}", time_str, version_value)
             }
             _ => format!(
