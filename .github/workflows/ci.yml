@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: pwd && docker ps && ip a 
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -37,3 +42,26 @@ jobs:
         with:
           command: clippy
           args: --all-targets --all-features -- -D warnings
+      - uses: actions-rs/cargo@v1
+        name: cargo test
+        with:
+          command: test
+  test:
+    runs-on: ubuntu-latest
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker run --net=host -t mcr.microsoft.com/azure-cli az storage container create --name ccon --connection-string 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;'
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        name: cargo test
+        with:
+          command: test
+          args: -- --ignored
