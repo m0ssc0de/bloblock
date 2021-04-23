@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: pwd && docker ps && ip a 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
         with:
