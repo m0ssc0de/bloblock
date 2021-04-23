@@ -5,5 +5,5 @@ A [sans I/O](https://sans-io.readthedocs.io/) libray for [Azure Blob Storage](ht
 ## TODO
 
 - [ ] complete readme.
-- [ ] add azurite into action pipeline.
+- [✓] add azurite into action pipeline.
 - [ ] refactor for elegant.
