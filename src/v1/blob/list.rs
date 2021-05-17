@@ -4,7 +4,7 @@ use http::Uri;
 use serde_xml_rs::from_str;
 use std::str::FromStr;
 
-impl<'a> super::Blob<'a> {
+impl super::Blob {
     pub fn list(&self, timefmt: &str) -> Result<http::Request<std::io::Empty>, Error> {
         let action = super::Actions::List;
         let now = timefmt;

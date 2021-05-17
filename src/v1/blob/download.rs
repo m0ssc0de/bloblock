@@ -3,7 +3,7 @@ use http::HeaderValue;
 use http::Uri;
 use std::str::FromStr;
 
-impl<'a> super::Blob<'a> {
+impl super::Blob {
     pub fn download(
         &self,
         file_name: &str,

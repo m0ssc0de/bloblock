@@ -11,20 +11,20 @@ pub use list::EnumerationResults;
 pub struct PropertiesResponse {
     pub last_modified: String,
 }
-pub struct Blob<'a> {
-    account: &'a str,
-    key: &'a str,
-    container: &'a str,
+pub struct Blob {
+    account: String,
+    key: String,
+    container: String,
     version_value: String,
     azurite: bool,
 }
 
-impl<'a> Blob<'a> {
-    pub fn new(account: &'a str, key: &'a str, container: &'a str, azurite: bool) -> Self {
+impl Blob {
+    pub fn new(account: &str, key: &str, container: &str, azurite: bool) -> Self {
         Self {
-            account,
-            key,
-            container,
+            account: account.to_owned(),
+            key: key.to_owned(),
+            container: container.to_owned(),
             version_value: String::from("2015-02-21"),
             azurite,
         }
@@ -48,7 +48,7 @@ impl<'a> Blob<'a> {
         content_length: usize,
     ) -> Result<String, Error> {
         let string_to_sign = prepare_to_sign(
-            self.account,
+            &self.account,
             path,
             action,
             time_str,
@@ -57,13 +57,13 @@ impl<'a> Blob<'a> {
         );
 
         // (
-        crate::sign::hmacsha256(self.key, &string_to_sign)
+        crate::sign::hmacsha256(&self.key, &string_to_sign)
         //     string_to_sign,
         // )
     }
 }
 
-impl<'a> fmt::Debug for Blob<'a> {
+impl fmt::Debug for Blob {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Blob: {:#?}", self)
     }

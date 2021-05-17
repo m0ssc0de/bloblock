@@ -18,7 +18,7 @@ impl<B> TryFrom<http::Response<B>> for super::PropertiesResponse {
     }
 }
 
-impl<'a> super::Blob<'a> {
+impl super::Blob {
     pub fn properties(
         &self,
         file_name: &str,

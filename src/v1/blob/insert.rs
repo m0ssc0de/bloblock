@@ -4,7 +4,7 @@ use anyhow::{Context, Error};
 use http::HeaderValue;
 use http::Uri;
 
-impl<'a> super::Blob<'a> {
+impl super::Blob {
     pub fn insert(
         &self,
         file_name: &str,
