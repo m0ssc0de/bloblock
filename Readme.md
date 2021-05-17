@@ -7,3 +7,4 @@ A [sans I/O](https://sans-io.readthedocs.io/) libray for [Azure Blob Storage](ht
 - [ ] complete readme.
 - [✓] add azurite into action pipeline.
 - [ ] refactor for elegant.
+- [ ] follow `https://rust-lang.github.io/api-guidelines/`

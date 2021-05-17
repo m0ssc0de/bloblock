@@ -3,6 +3,11 @@ name = "bloblock"
 version = "0.1.1"
 authors = ["m0ssc0de <hi.paul.q@gmail.com>"]
 edition = "2018"
+description = "A sans I/O libray for Azure Blob Storage."
+readme = "Readme.md"
+repository = "https://github.com/m0ssc0de/bloblock"
+license = "MIT OR Apache-2.0"
+keywords = ["sansio", "azure", "blob"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
