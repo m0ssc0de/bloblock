@@ -27,13 +27,12 @@ use chrono::{DateTime, Utc};
 let account = "{an azure account name}";
 let key = "{an zure account master key}";
 let container = "{a container name}";
+let instance = blob::Blob::new(&account, &key, &container, false);
 
 let file_name = "test_bloblock.txt";
 let now = Utc::now().format("%a, %d %b %Y %T GMT").to_string();
-
-let instance = blob::Blob::new(&account, &key, &container, true);
-
 let request = instance.download(file_name, &now).unwrap();
+
 let (p, _) = request.into_parts();
 
 // you can alternate `reqwest` whit another one
