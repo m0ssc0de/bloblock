@@ -1,6 +1,6 @@
 [package]
 name = "bloblock"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["m0ssc0de <hi.paul.q@gmail.com>"]
 edition = "2018"
 description = "A sans I/O libray for Azure Blob Storage."
