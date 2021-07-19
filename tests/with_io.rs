@@ -54,7 +54,7 @@ fn test_with_io() {
     let hresp = convert_response(response).unwrap();
     let res = crate::blob::PropertiesResponse::try_from(hresp).unwrap();
     let last_modified = DateTime::parse_from_rfc2822(&res.last_modified);
-    assert_eq!(true, last_modified.is_ok());
+    assert!(last_modified.is_ok());
 
     //list
     let request = instance.list(&now).unwrap();
@@ -68,9 +68,9 @@ fn test_with_io() {
 
     let resp = blob::parse_list_body(&(response.text().unwrap()).trim_start_matches('\u{feff}'));
 
-    assert_eq!(resp.is_ok(), true);
+    assert!(resp.is_ok());
     let the_res = resp.unwrap();
-    assert_eq!(true, !the_res.blobs.blob.is_empty());
+    assert!(!the_res.blobs.blob.is_empty());
 }
 
 fn convert_response(
