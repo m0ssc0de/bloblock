@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Error};
 use bloblock::blob;
-use chrono::{DateTime, Utc};
 use std::convert::TryFrom;
+use time::OffsetDateTime;
 
 #[test]
 #[ignore]
@@ -13,9 +13,13 @@ fn test_with_io() {
 
     let file_name = "test_bloblock.txt";
     let content = bytes::Bytes::from("hello world");
-    let now = Utc::now().format("%a, %d %b %Y %T GMT").to_string();
+    let now = OffsetDateTime::now_utc()
+        .format(time::macros::format_description!(
+            "[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT"
+        ))
+        .unwrap();
 
-    let instance = blob::Blob::new(&account, &key, &container, true);
+    let instance = blob::Blob::new(account, key, container, true);
 
     //insert
     let request = instance.insert(file_name, content, &now).unwrap();
@@ -53,7 +57,10 @@ fn test_with_io() {
     assert_eq!(response.status(), reqwest::StatusCode::OK);
     let hresp = convert_response(response).unwrap();
     let res = crate::blob::PropertiesResponse::try_from(hresp).unwrap();
-    let last_modified = DateTime::parse_from_rfc2822(&res.last_modified);
+    let last_modified = OffsetDateTime::parse(
+        &res.last_modified,
+        &time::format_description::well_known::Rfc2822,
+    );
     assert!(last_modified.is_ok());
 
     //list
@@ -66,7 +73,7 @@ fn test_with_io() {
         .send()
         .unwrap();
 
-    let resp = blob::parse_list_body(&(response.text().unwrap()).trim_start_matches('\u{feff}'));
+    let resp = blob::parse_list_body((response.text().unwrap()).trim_start_matches('\u{feff}'));
 
     assert!(resp.is_ok());
     let the_res = resp.unwrap();
